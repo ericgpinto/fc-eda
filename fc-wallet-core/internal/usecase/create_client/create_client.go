@@ -1,6 +1,7 @@
 package create_client
 
 import (
+	"fmt"
 	"time"
 
 	"github.com.br/devfullcycle/fc-ms-wallet/internal/entity"
@@ -47,5 +48,7 @@ func (uc *CreateClientUseCase) Execute(input CreateClientInputDTO) (*CreateClien
 		CreatedAt: client.CreatedAt,
 		UpdatedAt: client.UpdatedAt,
 	}
+
+	fmt.Println("Output: ", output)
 	return output, nil
 }

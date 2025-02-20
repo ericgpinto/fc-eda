@@ -2,6 +2,7 @@ package web
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"github.com.br/devfullcycle/fc-ms-wallet/internal/usecase/create_client"
@@ -28,6 +29,7 @@ func (h *WebClientHandler) CreateClient(w http.ResponseWriter, r *http.Request) 
     output, err := h.CreateClientUseCase.Execute(dto)
     if err != nil {
         w.WriteHeader(http.StatusInternalServerError)
+        fmt.Print("Error: ", err)
         return
     }
 
