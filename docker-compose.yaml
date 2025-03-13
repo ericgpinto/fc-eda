@@ -38,6 +38,8 @@ services:
       CONFLUENT_METRICS_ENABLE: "false"
     networks:
       - app-network
+    volumes:
+      - kafka_data:/var/lib/kafka/data
 
   control-center:
     image: confluentinc/cp-enterprise-control-center:7.3.0
@@ -116,15 +118,18 @@ services:
       - kafka
       - mysql-javaservice
     environment:
-      KAFKA_BROKER: kafka:9092
-      DB_HOST: mysql-java
+      KAFKA_BROKER: kafka:29092
+      DB_HOST: mysql-javaservice
       DB_PORT: 3306
       DB_NAME: java_db
       DB_PASSWORD: root
+      SPRING_PROFILES_ACTIVE: dev
     networks:
       - app-network
     volumes:
       - java_data:/app/data
+    ports:
+      - 3003:3003
 
 networks:
   app-network:
