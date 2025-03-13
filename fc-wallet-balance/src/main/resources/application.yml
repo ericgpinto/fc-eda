@@ -1,1 +1,16 @@
-spring.application.name=fc-wallet-balance
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: update  # O Hibernate cria/atualiza as tabelas automaticamente
+    properties:
+      hibernate:
+        show_sql: true
+        format_sql: true
+  datasource:
+    url: jdbc:h2:mem:testdb  # Banco de dados em memória H2
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+  sql:
+    init:
+      mode: never  # Executa o script data.sql sempre que a aplicação iniciar
