@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"log"
 
 	"github.com.br/devfullcycle/fc-ms-wallet/internal/database"
 	"github.com.br/devfullcycle/fc-ms-wallet/internal/event"
@@ -26,6 +27,9 @@ func main() {
 		panic(err)
 	}
 	defer db.Close()
+
+	createTables((db))
+	seedDatabase(db)
 
 	configMap := ckafka.ConfigMap{
 		"bootstrap.servers": "kafka:29092",
@@ -68,4 +72,81 @@ func main() {
 
 	fmt.Println("Server is running")
 	webserver.Start()
+}
+
+func createTables(db *sql.DB) {
+	queries := []string{
+		`CREATE TABLE IF NOT EXISTS clients (
+			id VARCHAR(36) PRIMARY KEY,
+			name VARCHAR(255) NOT NULL,
+			email VARCHAR(255) UNIQUE NOT NULL,
+			created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+		);`,
+		`CREATE TABLE IF NOT EXISTS accounts (
+			id VARCHAR(36) PRIMARY KEY,
+			client_id VARCHAR(36) NOT NULL,
+			balance INT NOT NULL,
+			created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+			FOREIGN KEY (client_id) REFERENCES clients(id)
+		);`,
+		`CREATE TABLE IF NOT EXISTS transactions (
+			id VARCHAR(36) PRIMARY KEY,
+			account_id_from VARCHAR(36) NOT NULL,
+			account_id_to VARCHAR(36) NOT NULL,
+			amount INT NOT NULL,
+			created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+			FOREIGN KEY (account_id_from) REFERENCES accounts(id),
+			FOREIGN KEY (account_id_to) REFERENCES accounts(id)
+		);`,
+	}
+
+	for _, query := range queries {
+		_, err := db.Exec(query)
+		if err != nil {
+			log.Fatalf("Erro ao criar tabela: %v\nQuery: %s", err, query)
+		}
+	}
+
+	fmt.Println("Tabelas criadas com sucesso!")
+}
+
+func seedDatabase(db *sql.DB) {
+	var count int
+	err := db.QueryRow("SELECT COUNT(*) FROM clients").Scan(&count)
+	if err != nil {
+		log.Fatalf("Erro ao verificar dados existentes: %v", err)
+	}
+
+	if count == 0 {
+		fmt.Println("Populando o banco de dados...")
+
+		_, err := db.Exec("INSERT INTO clients (id, name, email, created_at) VALUES (?, ?, ?, NOW())",
+			"4d2cd6d2-7879-4656-8ef4-03257339e51c", "João Silva", "joao@email.com")
+		if err != nil {
+			log.Fatalf("Erro ao inserir cliente: %v", err)
+		}
+		
+		_, err = db.Exec("INSERT INTO clients (id, name, email, created_at) VALUES (?, ?, ?, NOW())",
+			"850b9f3b-3cf2-48ba-80c7-702bd2a11d6f", "Wesley Will", "wwill@email.com")
+		if err != nil {
+			log.Fatalf("Erro ao inserir conta: %v", err)
+		}
+		
+		_, err = db.Exec("INSERT INTO accounts (id, client_id, balance, created_at) VALUES (?, ?, ?, NOW())",
+			"1b94b998-1f92-4897-a5e2-24bde6685b5d", "850b9f3b-3cf2-48ba-80c7-702bd2a11d6f", 1000)
+		if err != nil {
+			log.Fatalf("Erro ao inserir conta: %v", err)
+		}
+
+		_, err = db.Exec("INSERT INTO accounts (id, client_id, balance, created_at) VALUES (?, ?, ?, NOW())",
+			"bb835285-769c-439f-b1cb-a8788bdf8e72", "4d2cd6d2-7879-4656-8ef4-03257339e51c", 50)
+		if err != nil {
+			log.Fatalf("Erro ao inserir conta: %v", err)
+		}
+
+
+		fmt.Println("Banco de dados populado com sucesso!")
+	} else {
+		fmt.Println("Banco de dados já contém dados, pulando seed.")
+	}
 }
