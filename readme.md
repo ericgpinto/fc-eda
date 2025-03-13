@@ -75,7 +75,7 @@ curl -X POST http://localhost:8080/transactions -d '{
 }' -H "Content-Type: application/json"
 ```
 
-Utilize também o arquivo client.htpp dentro do projeto fc-wallet-core para realizar testes.
+Utilize também o arquivo client.http dentro do projeto fc-wallet-core para realizar testes.
 
 Para verificar os logs do consumidor `fc-wallet-balance`:
 
