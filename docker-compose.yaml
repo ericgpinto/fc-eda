@@ -58,9 +58,9 @@ services:
       PORT: 9021
     networks:
       - app-network
-  mysql-goservice:
+  db-wallet-core:
     image: mysql:8.0
-    container_name: mysql-go
+    container_name: db-wallet-core
     restart: always
     environment:
       MYSQL_ROOT_PASSWORD: root
@@ -73,9 +73,9 @@ services:
     volumes:
       - mysql_go_data:/var/lib/mysql
 
-  mysql-javaservice:
+  db-wallet-balance:
     image: mysql:8.0
-    container_name: mysql-java
+    container_name: db-wallet-balance
     restart: always
     environment:
       MYSQL_ROOT_PASSWORD: root
@@ -88,14 +88,14 @@ services:
     volumes:
       - mysql_java_data:/var/lib/mysql
 
-  go-service:
+  fc-wallet-core:
     build:
       context: ./fc-wallet-core
       dockerfile: Dockerfile
-    container_name: go-service
+    container_name: fc-wallet-core
     depends_on:
       - kafka
-      - mysql-goservice
+      - db-wallet-core
     environment:
       KAFKA_BROKER: kafka:9092
       DB_HOST: mysql-go
@@ -109,14 +109,14 @@ services:
     volumes:
       - go_data:/app/data
 
-  java-service:
+  fc-wallet-balance:
     build:
       context: ./fc-wallet-balance
       dockerfile: Dockerfile
-    container_name: java-service
+    container_name: fc-wallet-balance
     depends_on:
       - kafka
-      - mysql-javaservice
+      - db-wallet-balance
     environment:
       KAFKA_BROKER: kafka:29092
       DB_HOST: mysql-javaservice
